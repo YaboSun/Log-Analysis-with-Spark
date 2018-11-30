@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="Maven 1" modules="Spark-Streaming,Spark-based-NLAS,Log-Analysis-with-Spark">
+    <profile name="Maven 1" modules="Spark-Streaming,Spark-based-NLAS">
       <parameters>
         <parameter value="-make:transitive" />
         <parameter value="-dependencyfile" />
         <parameter value="$PROJECT_DIR$/target/.scala_dependencies" />
+      </parameters>
+    </profile>
+    <profile name="Maven 2" modules="Log-Analysis-with-Spark">
+      <parameters>
+        <parameter value="-target:jvm-1.5" />
       </parameters>
     </profile>
   </component>
