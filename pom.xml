@@ -34,12 +34,12 @@
       <version>${scala.version}</version>
     </dependency>
 
-    <!-- Kafka 依赖-->
-    <dependency>
-        <groupId>org.apache.kafka</groupId>
-        <artifactId>kafka_2.11</artifactId>
-        <version>${kafka.version}</version>
-    </dependency>
+    <!--&lt;!&ndash; Kafka 依赖&ndash;&gt;-->
+    <!--<dependency>-->
+        <!--<groupId>org.apache.kafka</groupId>-->
+        <!--<artifactId>kafka_2.11</artifactId>-->
+        <!--<version>${kafka.version}</version>-->
+    <!--</dependency>-->
 
     <!-- Hadoop 依赖-->
     <dependency>
