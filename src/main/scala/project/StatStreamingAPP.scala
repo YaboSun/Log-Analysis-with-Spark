@@ -3,6 +3,8 @@ package project
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import project.domain.ClickLog
+import project.utils.DateUtils
 
 /**
   * @author YaboSun
@@ -40,14 +42,17 @@ object StatStreamingAPP {
       // infos(2) = "GET /class/128.html HTTP/1.1"
       // url = /class/128.html
       val url = infos(2).split(" ")(1)
-
-
+      var courseId = 0
       // 进行筛选 只选取以class开头的课程编号
       if (url.startsWith("/class")) {
-        val courseIdHtml = url.split("/")(2)
-        val courseId = courseIdHtml.substring(0, courseIdHtml.lastIndexOf(".")).toInt
+        val courseIdHTML = url.split("/")(2)
+        courseId = courseIdHTML.substring(0, courseIdHTML.lastIndexOf(".")).toInt
       }
-    })
+
+      ClickLog(infos(0), DateUtils.parseToMinute(infos(1)), courseId, infos(3).toInt, infos(4))
+    }).filter(clicklog => clicklog.courseId != 0 )
+
+    cleanData.print()
 
     ssc.start()
     ssc.awaitTermination()
