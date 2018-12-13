@@ -29,7 +29,25 @@ object StatStreamingAPP {
     val messages = KafkaUtils.createStream(ssc, zkQuorum, groupId, topicMap)
 
     // 测试步骤一： 测试数据接收
-    messages.map(_._2).count().print()
+    //messages.map(_._2).count().print()
+
+    // 测试步骤二： 数据清洗
+    val logs = messages.map(_._2)
+    val cleanData = logs.map(line => {
+      // 主要是解析类似这样格式的
+      // "GET /class/128.html HTTP/1.1"
+      val infos = line.split("\t")
+      // infos(2) = "GET /class/128.html HTTP/1.1"
+      // url = /class/128.html
+      val url = infos(2).split(" ")(1)
+
+
+      // 进行筛选 只选取以class开头的课程编号
+      if (url.startsWith("/class")) {
+        val courseIdHtml = url.split("/")(2)
+        val courseId = courseIdHtml.substring(0, courseIdHtml.lastIndexOf(".")).toInt
+      }
+    })
 
     ssc.start()
     ssc.awaitTermination()
