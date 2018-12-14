@@ -26,7 +26,7 @@ object StatStreamingAPP {
 
     val sparkConf = new SparkConf()
       .setAppName("StatStreamingAPP")
-      .setMaster("local[2]")
+      //.setMaster("local[2]")
     val ssc = new StreamingContext(sparkConf, Seconds(60))
 
     val topicMap = topics.split(",").map((_, numThreads.toInt)).toMap
