@@ -3,8 +3,8 @@ package project
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import project.dao.CourseClickCountDAO
-import project.domain.{ClickLog, CourseClickCount}
+import project.dao.{CourseClickCountDAO, CourseSearchClickCountDAO}
+import project.domain.{ClickLog, CourseClickCount, CourseSearchClickCount}
 import project.utils.DateUtils
 
 import scala.collection.mutable.ListBuffer
@@ -72,6 +72,36 @@ object StatStreamingAPP {
         CourseClickCountDAO.save(list)
       })
     })
+
+    // 测试步骤四： 统计今天到现在为止从搜索引擎引流的实战课程的访问量
+    cleanData.map(x => {
+      /** 实现从这样的 “http://www.baidu.com/s?wd=Storm实战” 一个字符串中得到www.baidu.com */
+      // 转化为“http:/www.baidu.com/s?wd=Storm实战”
+      val referer = x.referer.replaceAll("//", "/")
+      // 按照“/”进行拆分
+      val splits = referer.split("/")
+
+      var host = ""
+      if (splits.length > 2) {
+        host = splits(1)
+      }
+
+      (host, x.courseId, x.time)
+    }).filter(_._1 != "").map(x => {
+      (x._3.substring(0,8) + "_" + x._1 + "_" + x._2, 1)
+    }).reduceByKey(_ + _).foreachRDD(rdd => {
+      rdd.foreachPartition(partitionRecords => {
+        val list = new ListBuffer[CourseSearchClickCount]
+
+        partitionRecords.foreach(pair => {
+          list.append(CourseSearchClickCount(pair._1, pair._2))
+        })
+
+        CourseSearchClickCountDAO.save(list)
+      })
+    })
+
+
     ssc.start()
     ssc.awaitTermination()
   }
