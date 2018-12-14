@@ -3,8 +3,11 @@ package project
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import project.domain.ClickLog
+import project.dao.CourseClickCountDAO
+import project.domain.{ClickLog, CourseClickCount}
 import project.utils.DateUtils
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * @author YaboSun
@@ -52,8 +55,23 @@ object StatStreamingAPP {
       ClickLog(infos(0), DateUtils.parseToMinute(infos(1)), courseId, infos(3).toInt, infos(4))
     }).filter(clicklog => clicklog.courseId != 0 )
 
-    cleanData.print()
+    // cleanData.print()
 
+    // 测试步骤三： 统计今天到现在为止实战课程的访问量
+    cleanData.map(x => {
+      // HBase rowkey 设计：20181111_88
+      (x.time.substring(0, 8) + "_" + x.courseId, 1)
+    }).reduceByKey(_ + _).foreachRDD(rdd => {
+      rdd.foreachPartition(partitionRecords => {
+        val list = new ListBuffer[CourseClickCount]
+
+        partitionRecords.foreach(pair => {
+          list.append(CourseClickCount(pair._1, pair._2))
+        })
+
+        CourseClickCountDAO.save(list)
+      })
+    })
     ssc.start()
     ssc.awaitTermination()
   }
